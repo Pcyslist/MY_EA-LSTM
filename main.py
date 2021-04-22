@@ -41,7 +41,7 @@ algorithm_params={
     # 损失函数
     'loss':'mse',
     # 训练迭代次数
-    'epochs':50,
+    'epochs':20,
     # 数据集批量大小
     'batch_size':256,
 

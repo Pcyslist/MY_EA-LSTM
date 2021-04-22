@@ -6,7 +6,7 @@ from tensorflow.keras.layers import LSTM, Dense
 from sklearn.metrics import mean_squared_error,mean_absolute_error
 from algorithm import pop_weights_init,individual_to_key,select,reconstruct_population,pop_to_weights
 from utils import get_usable_data,apply_weight,is_minimum
-
+import tensorflow as tf
 
 # 定义模型结构
 def make_model(algorithm_params):
@@ -22,10 +22,10 @@ def train(algorithm_params):
     train_X, valid_X, test_X, train_y, valid_y, test_y,scaler=get_usable_data(algorithm_params)
     # 最好的模型的初始化就是一个简单的LSTM模型
     best_model=make_model(algorithm_params)
-    # 最好的权重初始化为每个权重都是1.0
-    algorithm_params['best_weight']=[1.0] * algorithm_params['time_steps']
+    # 最好的权重初始化为每个权重都相等
+    algorithm_params['best_weight']=tf.nn.softmax([1.0] * algorithm_params['time_steps']).numpy().tolist()
     best_model.compile(loss = algorithm_params['loss'], optimizer = algorithm_params['optimizer'])
-    print('在竞争随机搜索之前初始训练一个基本的、注意力层全为1.0的 LSTM 模型......')
+    print('在竞争随机搜索之前初始训练一个基本的、注意力层全为1/time_steps的 LSTM 模型......')
     # 将注意力权重应用于训练集上
     weighted_train_X=apply_weight(train_X,algorithm_params['best_weight'])
     best_model.fit( weighted_train_X,train_y,epochs=algorithm_params['epochs'],
@@ -33,17 +33,20 @@ def train(algorithm_params):
     print('训练完成，开始竞争随机搜索......')
     # 产生第一代种群及其对应的十进制权重
     pop,weights=pop_weights_init(algorithm_params['pop_size'],algorithm_params['time_steps'],algorithm_params['encode_length'])
+    # 定义一个且仅此一个模型用于不断训练，通过set_weights来继承之前最好的参数训练成果。
+    model = make_model(algorithm_params)
+    model.compile(loss=algorithm_params['loss'], optimizer=algorithm_params['optimizer'])
     # 对竞争随即搜索的代数进行迭代
     for iteration in range(algorithm_params['iterations']):
         # 对每代中的个体及其权重进行迭代
         for index, (indiv, weight) in enumerate(zip(pop, weights)):
             print('iteration: [%d/%d] indiv_no: [%d/%d]' % (iteration + 1, algorithm_params['iterations'], index + 1, algorithm_params['pop_size']))
             key = individual_to_key(indiv)
+            print('当前注意力层：\n',weight)
             # 只有该个体没有参与过训练才让它去参与模型训练
             if key not in algorithm_params['key_to_rmse'].keys():
-                model=make_model(algorithm_params)
-                model.compile(loss = algorithm_params['loss'], optimizer = algorithm_params['optimizer'])
-                # model.set_weights(best_model.get_weights())
+                # 利用得到的最好模型的参数初始化新模型，加快训练速度
+                model.set_weights(best_model.get_weights())
                 weighted_train_X=apply_weight(train_X,weight)
                 model.fit( weighted_train_X,train_y,epochs=algorithm_params['epochs'],
                    batch_size=algorithm_params['batch_size'], shuffle=True ,verbose=2)

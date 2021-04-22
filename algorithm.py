@@ -1,6 +1,7 @@
 import math
 import random
 from itertools import combinations
+import tensorflow as tf
 # 初始化种群，每个时间步的权重用长度为code_length的二进制串去表示，每个individual有time_stemps个时间步二进制串形式的权重组成。
 def initialize_population(pop_size, time_steps, code_length):
     pop = []
@@ -22,6 +23,7 @@ def get_weight(indiv_code, time_steps, code_length):
     weight = []
     for i in range(time_steps):
         weight.append(decode(indiv_code[i * code_length: (i + 1) * code_length]))
+    weight=tf.nn.softmax(weight).numpy().tolist()
     return weight
 # 将一个种群的所有个体都转换为10进制权重
 def pop_to_weights(pop, time_steps, code_length):
