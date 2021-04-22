@@ -25,6 +25,8 @@ def visualize_model_performance(algorithm_params):
     inv_test_y = inv_test_y[:, 0]
     print('测试集预测值：', inv_pred_y)
     print('测试集真实值：', inv_test_y)
+    print('注意力层：',best_weight)
+    print('权重最高的时间步：',best_weight.index(max(best_weight))+1)
     rmse = math.sqrt(mean_squared_error(inv_test_y, inv_pred_y))
     mae = mean_absolute_error(inv_test_y, inv_pred_y)
     print("RMSE: %.4f, MAE: %.4f" % (rmse, mae))
