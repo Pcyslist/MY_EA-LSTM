@@ -11,7 +11,7 @@ from model import train
 '''
 algorithm_params={
     ### 任务要预测的情况
-    'task':2,
+    'task':1,
 
     ### 有关数据集的一些参数如下：
     # 历史序列长度(时间步)
