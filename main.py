@@ -27,9 +27,9 @@ algorithm_params={
 
     ### 有关LSTM模型结构的参数如下：
     # LSTM隐层节点数
-    'n_hidden_nodes':128,
+    'n_hidden_nodes':256,
     # LSTM隐层层数
-    'n_hidden_layers':2,
+    'n_hidden_layers':4,
     # 输出层节点数
     'n_output_nodes':1,
 
